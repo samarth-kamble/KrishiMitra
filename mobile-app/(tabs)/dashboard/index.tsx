@@ -1,6 +1,14 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import { Cloud, Wind, Droplets, Sun, Moon, Eye, Thermometer } from "lucide-react-native";
+import {
+  Cloud,
+  Wind,
+  Droplets,
+  Sun,
+  Moon,
+  Eye,
+  Thermometer,
+} from "lucide-react-native";
 
 export default function Weather() {
   return (
@@ -15,7 +23,9 @@ export default function Weather() {
         </View>
 
         {/* Current Weather */}
-        <Text className="text-2xl font-bold text-white mb-4">Current Weather</Text>
+        <Text className="text-2xl font-bold text-white mb-4">
+          Current Weather
+        </Text>
         <View className="bg-[#E8F3E8] rounded-3xl p-6 mb-4">
           <View className="flex-row justify-between items-center mb-4">
             <View>
@@ -42,7 +52,9 @@ export default function Weather() {
             <TouchableOpacity
               key={tab}
               className={`px-4 py-2 rounded-full text-sm ${
-                tab === "Today" ? "bg-[#E8F3E8] text-gray-800" : "bg-[#5A7751] text-white/90"
+                tab === "Today"
+                  ? "bg-[#E8F3E8] text-gray-800"
+                  : "bg-[#5A7751] text-white/90"
               }`}
             >
               <Text>{tab}</Text>
@@ -53,16 +65,51 @@ export default function Weather() {
         {/* Weather Details Grid */}
         <View className="flex-wrap flex-row justify-between">
           {[
-            { label: "Wind speed", value: "12 km/hr", icon: <Wind size={24} color="#4A4A4A" /> },
-            { label: "Precipitation", value: "86%", icon: <Cloud size={24} color="#4A4A4A" /> },
-            { label: "Sunrise/Sunset", value: "6:03/17:34", icon: <Sun size={24} color="#4A4A4A" /> },
-            { label: "Humidity", value: "60%", icon: <Droplets size={24} color="#4A4A4A" /> },
-            { label: "UV Index", value: "6", icon: <Sun size={24} color="#4A4A4A" /> },
-            { label: "Moon Phase", value: "Waning Gibbous", icon: <Moon size={24} color="#4A4A4A" /> },
-            { label: "Dew Point", value: "27°", icon: <Thermometer size={24} color="#4A4A4A" /> },
-            { label: "Visibility", value: "6.4 km", icon: <Eye size={24} color="#4A4A4A" /> },
+            {
+              label: "Wind speed",
+              value: "12 km/hr",
+              icon: <Wind size={24} color="#4A4A4A" />,
+            },
+            {
+              label: "Precipitation",
+              value: "86%",
+              icon: <Cloud size={24} color="#4A4A4A" />,
+            },
+            {
+              label: "Sunrise/Sunset",
+              value: "6:03/17:34",
+              icon: <Sun size={24} color="#4A4A4A" />,
+            },
+            {
+              label: "Humidity",
+              value: "60%",
+              icon: <Droplets size={24} color="#4A4A4A" />,
+            },
+            {
+              label: "UV Index",
+              value: "6",
+              icon: <Sun size={24} color="#4A4A4A" />,
+            },
+            {
+              label: "Moon Phase",
+              value: "Waning Gibbous",
+              icon: <Moon size={24} color="#4A4A4A" />,
+            },
+            {
+              label: "Dew Point",
+              value: "27°",
+              icon: <Thermometer size={24} color="#4A4A4A" />,
+            },
+            {
+              label: "Visibility",
+              value: "6.4 km",
+              icon: <Eye size={24} color="#4A4A4A" />,
+            },
           ].map((item, index) => (
-            <View key={index} className="bg-[#E8F3E8] rounded-2xl p-4 w-[48%] mb-3">
+            <View
+              key={index}
+              className="bg-[#E8F3E8] rounded-2xl p-4 w-[48%] mb-3"
+            >
               <View className="mb-2">{item.icon}</View>
               <Text className="text-sm text-gray-600">{item.label}</Text>
               <Text className="text-lg font-semibold">{item.value}</Text>
@@ -70,19 +117,6 @@ export default function Weather() {
           ))}
         </View>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View className="absolute bottom-0 left-0 right-0 bg-[#4A6741] border-t border-[#5A7751] p-4">
-        <View className="flex-row justify-around">
-          {["Home", "Weather", "Soil Health", "Crop Advisory"].map((item) => (
-            <TouchableOpacity key={item}>
-              <Text className={`text-sm ${item === "Weather" ? "text-white" : "text-white/60"}`}>
-                {item}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
     </View>
   );
 }
