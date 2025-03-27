@@ -1,13 +1,14 @@
 import { Router } from "express";
-import { 
-    getAllPosts, 
-    addPost, 
-    likePost, 
-    unlikePost, 
-    deletePost, 
-    getComments, 
-    addComment, 
-    deleteComment 
+// import { upload } from "../middlewares/multer.middlewares.js"; // Import the new multer config
+import {
+  getAllPosts,
+  addPost,
+  likePost,
+  unlikePost,
+  deletePost,
+  getComments,
+  addComment,
+  deleteComment,
 } from "../controllers/community.controller.js";
 
 import { upload } from "../middlewares/multer.js";
@@ -17,7 +18,7 @@ const router = Router();
 // ✅ Get all posts
 router.get("/all-posts", getAllPosts);
 
-// ✅ Add a post (User ID required)
+// ✅ Add a post (User ID required, Direct Upload to Cloudinary)
 router.post("/add-post/:userId", upload.single("image"), addPost);
 
 // ✅ Like a post

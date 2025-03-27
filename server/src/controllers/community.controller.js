@@ -4,8 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { Post } from "../models/posts.models.js";
 import { Comment } from "../models/comments.models.js";
 import { User } from "../models/users.models.js";
-import { cloudinary } from "../config/cloudinary.js";
-import fs from "fs";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 // ✅ Get all posts
 const getAllPosts = asyncHandler(async (req, res) => {
@@ -17,39 +16,30 @@ const getAllPosts = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, { posts }, "All posts fetched successfully"));
 });
 
-// ✅ Add a new post with image upload
+// ✅ Add a new post with Base64 image storage
 const addPost = asyncHandler(async (req, res) => {
     const { userId } = req.params;
     const { description } = req.body;
-    // console.log("Received file:", req.body.description); // Debugging log
-    const imageFile = req.file; // Multer stores file in `req.file`
 
     if (!description) throw new ApiError(400, "Post description is required");
 
-    let imageUrl = null;
+    let imageBase64 = null;
 
-    // If an image is uploaded, upload it to Cloudinary
-    if (imageFile) {
-        const result = await cloudinary.uploader.upload(imageFile.path, {
-            folder: "community-posts",
-        });
-        imageUrl = result.secure_url;
-
-        // Remove file from local storage after upload
-        fs.unlinkSync(imageFile.path);
+    if (req.file) {
+        imageBase64 = req.file.buffer.toString("base64"); // Convert image buffer to Base64
     }
 
-    // Create post with image URL
-    const post = await Post.create({ author: userId, description, image: imageUrl });
+    const post = await Post.create({ author: userId, description, image: imageBase64 });
 
     res.status(201).json(new ApiResponse(201, { post }, "Post created successfully"));
 });
+
 
 // ✅ Like a post
 const likePost = asyncHandler(async (req, res) => {
     const { postId, userId } = req.params;
 
-    const post = await Post.findById({_id:postId});
+    const post = await Post.findById(postId);
     if (!post) throw new ApiError(404, "Post not found");
 
     if (!post.likes.includes(userId)) {
@@ -64,7 +54,7 @@ const likePost = asyncHandler(async (req, res) => {
 const unlikePost = asyncHandler(async (req, res) => {
     const { postId, userId } = req.params;
 
-    const post = await Post.findById({_id:postId});
+    const post = await Post.findById(postId);
     if (!post) throw new ApiError(404, "Post not found");
 
     post.likes = post.likes.filter(id => id.toString() !== userId);
@@ -76,16 +66,11 @@ const unlikePost = asyncHandler(async (req, res) => {
 // ✅ Delete a post
 const deletePost = asyncHandler(async (req, res) => {
     const { postId } = req.params;
-    // console.log(postId);
-    const post = await Post.findById({_id:postId});
+
+    const post = await Post.findById(postId);
     if (!post) throw new ApiError(404, "Post not found");
 
-    // Remove post from user's posts array
-    const user = await User.findById({_id:post.author});
-    if (!user) throw new ApiError(404, "User not found");
-    user.posts.remove(postId);
-    user.save();
-
+    await User.findByIdAndUpdate(post.author, { $pull: { posts: postId } });
     await post.deleteOne();
 
     res.status(200).json(new ApiResponse(200, null, "Post deleted successfully"));
@@ -95,9 +80,9 @@ const deletePost = asyncHandler(async (req, res) => {
 const getComments = asyncHandler(async (req, res) => {
     const { postId } = req.params;
 
-    const post = await Post.findById({_id:postId}).populate({
+    const post = await Post.findById(postId).populate({
         path: "comments",
-        populate: { path: "user", select: "name" }, // Populate comment user name
+        populate: { path: "user", select: "name" },
     });
 
     if (!post) throw new ApiError(404, "Post not found");
@@ -113,8 +98,7 @@ const addComment = asyncHandler(async (req, res) => {
     if (!message) throw new ApiError(400, "Comment message is required");
 
     const comment = await Comment.create({ user: userId, message });
-
-    await Post.findByIdAndUpdate({_id:postId}, { $push: { comments: comment._id } });
+    await Post.findByIdAndUpdate(postId, { $push: { comments: comment._id } });
 
     res.status(201).json(new ApiResponse(201, { comment }, "Comment added successfully"));
 });
