@@ -4,6 +4,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { Post } from "../models/posts.models.js";
 import { Comment } from "../models/comments.models.js";
 import { User } from "../models/users.models.js";
+import { cloudinary } from "../config/cloudinary.js";
+import fs from "fs";
 
 // ✅ Get all posts
 const getAllPosts = asyncHandler(async (req, res) => {
@@ -15,22 +17,30 @@ const getAllPosts = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, { posts }, "All posts fetched successfully"));
 });
 
-// ✅ Add a new post
+// ✅ Add a new post with image upload
 const addPost = asyncHandler(async (req, res) => {
-    const { userId } = req.params; // Extract userId from request parameters
-    const { description, image } = req.body;
+    const { userId } = req.params;
+    const { description } = req.body;
+    // console.log("Received file:", req.body.description); // Debugging log
+    const imageFile = req.file; // Multer stores file in `req.file`
 
     if (!description) throw new ApiError(400, "Post description is required");
-    
-    // Create a new post with the userId as the author
-    const post = await Post.create({ author: userId, description, image });
-    
-    // Update the user's posts array
-    const user = await User.findById({_id:userId});
-    if (!user) throw new ApiError(404, "User not found");
-    
-    user.posts.push(post._id);
-    await user.save();
+
+    let imageUrl = null;
+
+    // If an image is uploaded, upload it to Cloudinary
+    if (imageFile) {
+        const result = await cloudinary.uploader.upload(imageFile.path, {
+            folder: "community-posts",
+        });
+        imageUrl = result.secure_url;
+
+        // Remove file from local storage after upload
+        fs.unlinkSync(imageFile.path);
+    }
+
+    // Create post with image URL
+    const post = await Post.create({ author: userId, description, image: imageUrl });
 
     res.status(201).json(new ApiResponse(201, { post }, "Post created successfully"));
 });
@@ -66,7 +76,7 @@ const unlikePost = asyncHandler(async (req, res) => {
 // ✅ Delete a post
 const deletePost = asyncHandler(async (req, res) => {
     const { postId } = req.params;
-    console.log(postId);
+    // console.log(postId);
     const post = await Post.findById({_id:postId});
     if (!post) throw new ApiError(404, "Post not found");
 
