@@ -25,7 +25,7 @@ const registerUser = asyncHandler(async (req, res) => {
     const { name, email, password, role} = req.body;
 
     // Validate required fields
-    if (![name, email, password, role].every(Boolean)) {
+    if (![name, email, password].every(Boolean)) {
         throw new ApiError(400, "All required fields must be provided");
     }
 
@@ -43,7 +43,7 @@ const registerUser = asyncHandler(async (req, res) => {
         name,
         email,
         password,
-        role
+        role,
     });
 
     // Fetch user without password & refreshToken
