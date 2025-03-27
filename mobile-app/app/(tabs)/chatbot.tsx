@@ -1,7 +1,7 @@
 import { View, Text } from "react-native";
 import React from "react";
 
-const AgriCare = () => {
+const ChatBot = () => {
   return (
     <View>
       <Text>Chatbot</Text>
@@ -9,4 +9,4 @@ const AgriCare = () => {
   );
 };
 
-export default AgriCare;
+export default ChatBot;

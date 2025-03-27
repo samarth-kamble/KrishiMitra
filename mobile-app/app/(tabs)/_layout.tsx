@@ -60,12 +60,26 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="agricare"
+        name="diagnosis"
         options={{
-          title: "AgriCare",
+          title: "diagnosis",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.chatbot} title="AgriCare" />
+            <TabIcon
+              focused={focused}
+              icon={icons.diagnosis}
+              title="diagnosis"
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="chatbot"
+        options={{
+          title: "ChatBot",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} icon={icons.chatbot} title="ChatBot" />
           ),
         }}
       />
