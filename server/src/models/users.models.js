@@ -9,7 +9,7 @@ const userRoles = {
     admin: "admin",
 };
 
-// Define the schema
+// Define User Schema
 const userSchema = new Schema(
     {
         name: {
@@ -24,35 +24,19 @@ const userSchema = new Schema(
         },
         password: {
             type: String,
-            required: [true, "Password is required"], // Password is required for ALL
+            required: [true, "Password is required"],
         },
         role: {
             type: String,
-            enum: Object.values(userRoles), // Restrict role values
+            enum: Object.values(userRoles),
             required: [true, "Role is required"],
         },
-        posts: [],
-        follwers: [],
-        following: [],
-        refreshToken: {
-            type: String,
-        },
+        posts: [{ type: Schema.Types.ObjectId, ref: "Post" }], // Reference to posts
+        followers: [{ type: Schema.Types.ObjectId, ref: "User" }], // Users who follow this user
+        following: [{ type: Schema.Types.ObjectId, ref: "User" }], // Users this user follows
     },
     { timestamps: true }
 );
-
-// Validate student-specific fields
-userSchema.pre("validate", function (next) {
-    if (this.role === userRoles.STUDENT) {
-        if (!this.prn) {
-            return next(new Error("PRN is required for students."));
-        }
-        if (!this.rollNo) {
-            return next(new Error("Roll number is required for students."));
-        }
-    }
-    next();
-});
 
 // Hash password before saving
 userSchema.pre("save", async function (next) {
@@ -69,29 +53,18 @@ userSchema.methods.isPasswordCorrect = async function (password) {
 // Generate Access Token
 userSchema.methods.generateAccessToken = function () {
     return jwt.sign(
-        {
-            _id: this._id,
-            email: this.email,
-            role: this.role,
-        },
+        { _id: this._id, email: this.email, role: this.role },
         process.env.ACCESS_TOKEN_SECRET,
-        {
-            expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
-        }
+        { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
     );
 };
 
 // Generate Refresh Token
 userSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
-        {
-            _id: this._id,
-            email: this.email,
-        },
+        { _id: this._id, email: this.email },
         process.env.REFRESH_TOKEN_SECRET,
-        {
-            expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
-        }
+        { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
     );
 };
 
