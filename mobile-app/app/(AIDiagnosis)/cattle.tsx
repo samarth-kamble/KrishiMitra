@@ -1,12 +1,12 @@
 import { View, Text } from "react-native";
 import React from "react";
 
-const AgriCare = () => {
+const Cattle = () => {
   return (
     <View>
-      <Text>Chatbot</Text>
+      <Text>Cattle</Text>
     </View>
   );
 };
 
-export default AgriCare;
+export default Cattle;

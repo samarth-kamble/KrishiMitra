@@ -8,7 +8,7 @@ function TabIcon({ focused, icon, title }: any) {
     return (
       <ImageBackground
         source={images.highlight}
-        className="flex flex-row w-full flex-1 min-w-[114px] min-h-[57px] mt-[12px] justify-center items-center rounded-full overflow-hidden"
+        className="flex flex-row w-full flex-1 min-w-[100px] min-h-[57px] mt-[12px] justify-center items-center rounded-full overflow-hidden"
       >
         <Image source={icon} tintColor="#151312" className="size-5" />
         <Text className="text-secondary text-base font-semibold ml-2">
@@ -60,12 +60,26 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="agricare"
+        name="diagnosis"
         options={{
-          title: "AgriCare",
+          title: "diagnosis",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.chatbot} title="AgriCare" />
+            <TabIcon
+              focused={focused}
+              icon={icons.diagnosis}
+              title="Diagnosis"
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="chatbot"
+        options={{
+          title: "ChatBot",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon focused={focused} icon={icons.chatbot} title="ChatBot" />
           ),
         }}
       />

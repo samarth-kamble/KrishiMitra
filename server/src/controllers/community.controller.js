@@ -23,16 +23,17 @@ const addPost = asyncHandler(async (req, res) => {
 
     if (!description) throw new ApiError(400, "Post description is required");
 
-    let imageBase64 = null;
-
+    let imageUrl = null;
+    // console.log(req.file);
     if (req.file) {
-        imageBase64 = req.file.buffer.toString("base64"); // Convert image buffer to Base64
+        imageUrl = await uploadOnCloudinary(req.file.buffer.toString("base64"));
     }
 
-    const post = await Post.create({ author: userId, description, image: imageBase64 });
+    const post = await Post.create({ author: userId, description, image: imageUrl });
 
     res.status(201).json(new ApiResponse(201, { post }, "Post created successfully"));
 });
+
 
 
 // ✅ Like a post
