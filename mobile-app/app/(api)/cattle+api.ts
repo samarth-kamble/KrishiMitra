@@ -8,27 +8,6 @@ if (!GOOGLE_API_KEY) {
   throw new Error("GOOGLE_API_KEY is not set in environment variables.");
 }
 
-interface ImageProcessingError extends Error {
-  message: string;
-}
-
-/**
- * Converts an image at the given URI to a base64 string
- * @param uri The file URI to read
- * @returns A Promise resolving to a base64-encoded string
- */
-async function getBase64(uri: string): Promise<string> {
-  try {
-    return await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-  } catch (error) {
-    throw new Error(
-      "Failed to convert image to base64."
-    ) as ImageProcessingError;
-  }
-}
-
 interface CattleDisease {
   name: string;
   symptoms: string[];
@@ -56,6 +35,27 @@ interface GeminiResponse {
   }[];
 }
 
+/**
+ * Converts an image at the given URI to a base64 string.
+ * @param uri The file URI to read.
+ * @returns A Promise resolving to a base64-encoded string.
+ */
+async function getBase64(uri: string): Promise<string> {
+  try {
+    return await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+  } catch (error) {
+    throw new Error(`Failed to convert image to base64: ${(error as Error).message}`);
+  }
+}
+
+/**
+ * Analyzes a cattle image for potential diseases.
+ * @param imageUri The URI of the image to analyze.
+ * @param mimeType The MIME type of the image.
+ * @returns A Promise resolving to a `CattleAnalysisResult` object.
+ */
 export async function analyzeCattleImage(
   imageUri: string,
   mimeType: string
@@ -120,10 +120,18 @@ Do not include any extra text.
       body: JSON.stringify(requestBody),
     });
 
+    if (!response.ok) {
+      throw new Error(`API request failed with status: ${response.status}`);
+    }
+
     const data: GeminiResponse = await response.json();
 
-    if (data.candidates && data.candidates.length > 0) {
-      let responseText = data.candidates[0].content.parts[0].text.trim();
+    if ((data.candidates ?? []).length > 0) {
+      let responseText = (data.candidates ?? [])[0].content.parts[0]?.text?.trim();
+
+      if (!responseText) {
+        throw new Error("Empty response from Gemini API.");
+      }
 
       if (responseText.startsWith("```json")) {
         responseText = responseText.replace(/```json\s*|\s*```/g, "").trim();
@@ -132,12 +140,12 @@ Do not include any extra text.
       try {
         return JSON.parse(responseText) as CattleAnalysisResult;
       } catch (error) {
-        throw new Error("Invalid JSON response: " + responseText);
+        throw new Error(`Invalid JSON response: ${responseText}`);
       }
     } else {
-      throw new Error("No valid response from Gemini API");
+      throw new Error("No valid response from Gemini API.");
     }
-  } catch (error: any) {
-    throw new Error("Error analyzing image: " + error.message);
+  } catch (error) {
+    throw new Error(`Error analyzing image: ${(error as Error).message}`);
   }
 }
