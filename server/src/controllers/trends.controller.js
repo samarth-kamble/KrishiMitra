@@ -8,32 +8,44 @@ import { Scheme } from "../models/schemes.models.js";
 const getWeather = asyncHandler(async (req, res) => {
     const { lat, lon } = req.query;
 
+    // Validate Latitude & Longitude
     if (!lat || !lon) {
         throw new ApiError(400, "Latitude and Longitude are required");
     }
 
-    const apiKey = process.env.OPENWEATHER_API_KEY;  
+    // Get API Key from Environment Variables
+    const apiKey = process.env.OPENWEATHER_API_KEY;
     if (!apiKey) {
         throw new ApiError(500, "Weather API key is missing");
     }
 
+    // Construct OpenWeather API URL
     const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
 
     try {
         const response = await axios.get(weatherUrl);
+        const weatherData = response.data;
 
-        res.status(200).json(
-            new ApiResponse(200, {
-                temperature: response.data.main.temp,
-                weather: response.data.weather[0].description,
-                humidity: response.data.main.humidity,
-                windSpeed: response.data.wind.speed,
-                location: response.data.name,
-            }, "Weather data fetched successfully")
-        );
+        // Format the Response Data
+        const formattedWeather = {
+            temperature: weatherData.main.temp,
+            weather: weatherData.weather[0].description,
+            humidity: weatherData.main.humidity,
+            windSpeed: weatherData.wind.speed,
+            location: weatherData.name || "Unknown",
+        };
+
+        res.status(200).json(new ApiResponse(200, formattedWeather, "Weather data fetched successfully"));
     } catch (error) {
-        console.error("Weather API Error:", error.response?.data || error.message);
-        throw new ApiError(500, error.response?.data?.message || "Failed to fetch weather data");
+        console.error("⚠ Weather API Error:", error.response?.data || error.message);
+
+        if (error.response) {
+            // Handle API-specific errors
+            const errorMessage = error.response.data?.message || "Error fetching weather data";
+            throw new ApiError(error.response.status, errorMessage);
+        }
+
+        throw new ApiError(500, "Failed to fetch weather data");
     }
 });
 
