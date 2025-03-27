@@ -29,7 +29,7 @@ const userSchema = new Schema(
         role: {
             type: String,
             enum: Object.values(userRoles),
-            required: [true, "Role is required"],
+            default : userRoles.farmer
         },
         posts: [{ type: Schema.Types.ObjectId, ref: "Post" }], // Reference to posts
         followers: [{ type: Schema.Types.ObjectId, ref: "User" }], // Users who follow this user
