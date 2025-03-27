@@ -7,16 +7,38 @@ import {
   TextInput,
   Pressable,
   StyleSheet,
+  Alert,
 } from "react-native";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { images } from "@/constants";
+import { api } from "@/lib/axiosConfig"; // Import API instance
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSignIn = () => {
-    console.log("Signing In with:", { email, password });
+  const handleSignIn = async () => {
+    try {
+      const response = await api.post('/api/auth/login', { 
+        email, 
+        password 
+      });
+
+      if (response.data.success) {
+        Alert.alert("Success", "Login successful!");
+        router.push("/(tabs)/dashboard"); // Change "/home" to your actual home screen route
+      } else {
+        Alert.alert("Error", response.data.message);
+      }
+    } catch (error) {
+      const err = error as any; // Explicitly cast error to any
+      if (err.response) {
+        Alert.alert("Error", err.response.data.message || "Login failed");
+      } else {
+        Alert.alert("Error", "An unexpected error occurred");
+      }
+      console.error("SignIn Error:", err.response?.data);
+    }
   };
 
   return (
@@ -24,7 +46,7 @@ const SignIn = () => {
       {/* Header Image */}
       <Image source={images.SignUp} style={styles.image} />
 
-      {/* Title Outside the Image */}
+      {/* Title */}
       <Text style={styles.headerText}>Sign In to Your Account</Text>
 
       {/* Sign In Form */}

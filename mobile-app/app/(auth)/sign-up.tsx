@@ -13,6 +13,7 @@ import { images } from "@/constants";
 import axios from "axios";
 import { Alert } from "react-native";
 import { router } from "expo-router";
+import { api } from "@/lib/axiosConfig";
 
 
 
@@ -23,22 +24,25 @@ const SignUp = () => {
 
   const handleSignUp = async () => {
     try {
-      const response = await axios.post(
-        "http://localhost:8000/api/auth/register",
-        { name, email, password },
-        { withCredentials: true } // Ensures cookies are sent
-      );
+      const response = await api.post('/api/auth/register', { 
+        name, 
+        email, 
+        password 
+      });
       
-      console.log("reached here")
       if (response.data.success) {
-        // Alert.alert("Success", "User registered successfully!");
-        router.push("/dashboard");
+        router.push("/sign-in");
       } else {
         Alert.alert("Error", response.data.message);
       }
     } catch (error) {
-      const errorMessage = (error as any)?.response?.data?.message || "Something went wrong";
-      Alert.alert("Error", errorMessage);
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data?.message || error.message;
+        Alert.alert("Error", errorMessage);
+        console.error("Signup Error:", error.response?.data);
+      } else {
+        Alert.alert("Error", "An unexpected error occurred");
+      }
     }
   };
 
