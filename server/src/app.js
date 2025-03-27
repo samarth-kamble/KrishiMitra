@@ -22,6 +22,7 @@ app.use(cookieParser());
 
 
 
+
 //routes import
 import userRoutes from "./routes/users.routes.js";
 import trendsRoutes from "./routes/trends.routes.js";
