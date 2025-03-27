@@ -24,10 +24,11 @@ app.use(cookieParser());
 
 //routes import
 import userRoutes from "./routes/users.routes.js";
-
+import trendsRoutes from "./routes/trends.routes.js";
 
 // routes declaration
 app.use("/api/auth", userRoutes);
+app.use("/api/trends", trendsRoutes);
 
 
 
