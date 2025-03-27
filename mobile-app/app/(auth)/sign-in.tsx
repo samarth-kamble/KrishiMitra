@@ -19,14 +19,14 @@ const SignIn = () => {
 
   const handleSignIn = async () => {
     try {
-      const response = await api.post('/api/auth/login', { 
-        email, 
-        password 
+      const response = await api.post('/api/auth/login', {
+        email,
+        password
       });
 
       if (response.data.success) {
         Alert.alert("Success", "Login successful!");
-        router.push("/(tabs)/dashboard"); // Change "/home" to your actual home screen route
+        router.push("/(tabs)/home"); // Change "/home" to your actual home screen route
       } else {
         Alert.alert("Error", response.data.message);
       }
