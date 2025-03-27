@@ -29,10 +29,12 @@ app.use(cookieParser());
 // Routes Import
 import userRoutes from "./routes/users.routes.js";
 import trendsRoutes from "./routes/trends.routes.js";
+import communityRoutes from "./routes/community.routes.js"; //server\src\routes\community.routes.js
 
 // API Routes
 app.use("/api/auth", userRoutes);
 app.use("/api/trends", trendsRoutes);
+app.use("/api/community", communityRoutes);
 
 // Health Check Route
 app.get("/", (req, res) => {

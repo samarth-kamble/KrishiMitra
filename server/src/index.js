@@ -17,3 +17,17 @@ connectDB()
 });
 
 
+// import express from "express";
+// import multer from "multer";
+
+// const app = express();
+// const upload = multer({ dest: "uploads/" });
+
+// app.post("/test-upload", upload.single("image"), (req, res) => {
+//     console.log("🟢 Multer Test Executed");
+//     console.log("🟢 Received File:", req.file);
+//     console.log("🟢 Request Body:", req.body);
+//     res.send("File uploaded!");
+// });
+
+app.listen(3000, () => console.log("🟢 Server running on port 3000"));
