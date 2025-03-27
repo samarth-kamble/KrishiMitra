@@ -10,14 +10,36 @@ import {
 } from "react-native";
 import { Link } from "expo-router";
 import { images } from "@/constants";
+import axios from "axios";
+import { Alert } from "react-native";
+import { router } from "expo-router";
+
+
 
 const SignUp = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSignUp = () => {
-    console.log("Signing Up with:", { name, email, password });
+  const handleSignUp = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/api/auth/register",
+        { name, email, password },
+        { withCredentials: true } // Ensures cookies are sent
+      );
+      
+      console.log("reached here")
+      if (response.data.success) {
+        // Alert.alert("Success", "User registered successfully!");
+        router.push("/dashboard");
+      } else {
+        Alert.alert("Error", response.data.message);
+      }
+    } catch (error) {
+      const errorMessage = (error as any)?.response?.data?.message || "Something went wrong";
+      Alert.alert("Error", errorMessage);
+    }
   };
 
   return (
