@@ -1,13 +1,7 @@
-import { Platform } from "react-native";
 import * as FileSystem from "expo-file-system";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const GOOGLE_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GOOGLE_API_KEY}`;
-
-if (!GOOGLE_API_KEY) {
-  throw new Error("GOOGLE_API_KEY is not set in environment variables.");
-}
-
+// Interfaces for type safety
 interface CattleDisease {
   name: string;
   symptoms: string[];
@@ -25,127 +19,118 @@ interface CattleAnalysisResult {
   remedies: DiseaseRemedy[];
 }
 
-interface GeminiResponse {
-  candidates?: {
-    content: {
-      parts: {
-        text: string;
-      }[];
-    };
-  }[];
-}
+class CattleHealthAnalyzer {
+  private genAI: GoogleGenerativeAI;
 
-/**
- * Converts an image at the given URI to a base64 string.
- * @param uri The file URI to read.
- * @returns A Promise resolving to a base64-encoded string.
- */
-async function getBase64(uri: string): Promise<string> {
-  try {
-    return await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-  } catch (error) {
-    throw new Error(`Failed to convert image to base64: ${(error as Error).message}`);
-  }
-}
-
-/**
- * Analyzes a cattle image for potential diseases.
- * @param imageUri The URI of the image to analyze.
- * @param mimeType The MIME type of the image.
- * @returns A Promise resolving to a `CattleAnalysisResult` object.
- */
-export async function analyzeCattleImage(
-  imageUri: string,
-  mimeType: string
-): Promise<CattleAnalysisResult> {
-  try {
-    if (!imageUri) {
-      throw new Error("No image provided.");
+  constructor(apiKey: string) {
+    if (!apiKey) {
+      throw new Error("Google API Key is required");
     }
+    this.genAI = new GoogleGenerativeAI(apiKey);
+  }
 
-    const base64Image = await getBase64(imageUri);
+  /**
+   * Convert image URI to base64
+   * @param uri Local file URI
+   * @returns Base64 encoded image string
+   */
+  private async imageToBase64(uri: string): Promise<string> {
+    try {
+      // Read file as base64
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      return base64;
+    } catch (error) {
+      console.error("Image conversion error:", error);
+      throw new Error("Failed to convert image to base64");
+    }
+  }
 
-    const prompt = `
-Analyze this image of cattle for signs of disease.
-Specifically, look for:
-- Skin lesions, ulcers, or unusual growths.
-- Signs of lameness or difficulty walking.
-- Discharge from the eyes, nose, or mouth.
-- Swelling or inflammation.
-- Changes in coat condition.
-- Any other abnormalities.
+  /**
+   * Analyze cattle image for health issues
+   * @param imageUri Local file URI of the image
+   * @returns Detailed health analysis
+   */
+  async analyzeCattleImage(imageUri: string): Promise<CattleAnalysisResult> {
+    try {
+      // Validate image URI
+      const fileInfo = await FileSystem.getInfoAsync(imageUri);
+      if (!fileInfo.exists) {
+        throw new Error("Image file does not exist");
+      }
 
-Respond ONLY in JSON format with the following structure:
-{
-    "cattle_diseases": [
-        {
-            "name": "Disease Name",
-            "symptoms": ["Symptom1", "Symptom2"],
-            "possible_causes": ["Cause1", "Cause2"]
-        }
-    ],
-    "remedies": [
-        {
+      // Convert image to base64
+      const base64Image = await this.imageToBase64(imageUri);
+
+      // Initialize Gemini model
+      const model = this.genAI.getGenerativeModel({
+        model: "gemini-1.5-flash",
+      });
+
+      // Detailed prompt for image analysis
+      const prompt = `
+      Thoroughly analyze this cattle image for potential health issues:
+
+      Detailed Assessment Criteria:
+      1. Physical Condition Evaluation
+      2. Potential Disease Indicators
+      3. Visible Health Abnormalities
+      4. Immediate Veterinary Recommendations
+
+      Response Format (Strict JSON):
+      {
+        "cattle_diseases": [
+          {
+            "name": "Specific Disease Name",
+            "symptoms": ["Detailed Symptom 1", "Detailed Symptom 2"],
+            "possible_causes": ["Primary Cause", "Secondary Cause"]
+          }
+        ],
+        "remedies": [
+          {
             "disease": "Disease Name",
-            "treatment": "Treatment plan",
-            "prevention": "Prevention tips"
-        }
-    ]
-}
-Do not include any extra text.
-`;
+            "treatment": "Comprehensive Treatment Protocol",
+            "prevention": "Preventive Measures and Best Practices"
+          }
+        ]
+      }
+      `;
 
-    const requestBody = {
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: prompt },
-            {
-              inline_data: {
-                mime_type: mimeType,
-                data: base64Image,
+      // Generate content
+      const result = await model.generateContent({
+        contents: [
+          {
+            role: "user",
+            parts: [
+              { text: prompt },
+              {
+                inlineData: {
+                  mimeType: "image/jpeg",
+                  data: base64Image,
+                },
               },
-            },
-          ],
-        },
-      ],
-    };
+            ],
+          },
+        ],
+      });
 
-    const response = await fetch(GEMINI_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestBody),
-    });
+      // Extract and parse response
+      const responseText = result.response
+        .text()
+        .replace(/```json\s*|\s*```/g, "")
+        .trim();
 
-    if (!response.ok) {
-      throw new Error(`API request failed with status: ${response.status}`);
+      // Parse JSON response
+      const analysisResult: CattleAnalysisResult = JSON.parse(responseText);
+
+      return analysisResult;
+    } catch (error) {
+      console.error("Cattle Analysis Error:", error);
+      throw error;
     }
-
-    const data: GeminiResponse = await response.json();
-
-    if ((data.candidates ?? []).length > 0) {
-      let responseText = (data.candidates ?? [])[0].content.parts[0]?.text?.trim();
-
-      if (!responseText) {
-        throw new Error("Empty response from Gemini API.");
-      }
-
-      if (responseText.startsWith("```json")) {
-        responseText = responseText.replace(/```json\s*|\s*```/g, "").trim();
-      }
-
-      try {
-        return JSON.parse(responseText) as CattleAnalysisResult;
-      } catch (error) {
-        throw new Error(`Invalid JSON response: ${responseText}`);
-      }
-    } else {
-      throw new Error("No valid response from Gemini API.");
-    }
-  } catch (error) {
-    throw new Error(`Error analyzing image: ${(error as Error).message}`);
   }
 }
+
+// Export the analyzer for use in the app
+export default CattleHealthAnalyzer;
