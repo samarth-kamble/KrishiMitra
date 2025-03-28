@@ -1,14 +1,118 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React from "react";
+import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Link } from "expo-router";
 
-const chatbot = () => {
+export default function SeasonalAdviceChatbot() {
   return (
-    <View>
-      <Text>chatbot</Text>
-    </View>
-  )
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerText}>AgroTech</Text>
+      </View>
+
+      {/* Welcome Section */}
+      <View style={styles.welcomeContainer}>
+        <Image
+          source={{
+            uri: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80",
+          }}
+          style={styles.welcomeImage}
+        />
+        <View style={styles.welcomeOverlay}>
+          <Text style={styles.welcomeText}>Welcome, Farmer!</Text>
+        </View>
+      </View>
+
+      {/* Feature Cards */}
+      <View style={styles.cardContainer}>
+        {/* Seasonal Advice Card */}
+        <Link href="/(chatbot)/seasonal" asChild>
+          <TouchableOpacity style={styles.card}>
+            <Text style={styles.cardTitle}>Seasonal Advice</Text>
+            <Image
+              source={{
+                uri: "https://images.unsplash.com/photo-1576589400585-4179a4b3e2a5?auto=format&fit=crop&w=300&q=80",
+              }}
+              style={styles.cardImage}
+            />
+          </TouchableOpacity>
+        </Link>
+
+        {/* AI Chatbot Card */}
+        <Link href="/(chatbot)/agribuddy" asChild>
+          <TouchableOpacity style={styles.card}>
+            <Text style={styles.cardTitle}>AI Farming Chatbot</Text>
+            <Image
+              source={{
+                uri: "https://images.unsplash.com/photo-1587614313087-9b058b8e1643?auto=format&fit=crop&w=300&q=80",
+              }}
+              style={styles.cardImage}
+            />
+          </TouchableOpacity>
+        </Link>
+      </View>
+    </SafeAreaView>
+  );
 }
 
-export default chatbot
-
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  header: {
+    backgroundColor: "#22C55E",
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "white",
+  },
+  welcomeContainer: {
+    position: "relative",
+  },
+  welcomeImage: {
+    width: "100%",
+    height: 180,
+    resizeMode: "cover",
+  },
+  welcomeOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    padding: 16,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+  },
+  welcomeText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "white",
+  },
+  cardContainer: {
+    padding: 16,
+    gap: 12,
+  },
+  card: {
+    backgroundColor: "#E8F3E8",
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  cardImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    resizeMode: "cover",
+  },
+});
